@@ -11,17 +11,17 @@ The Transaction endpoint is the culmination of the remittance flow. It links tog
 
 #### Request Body
 
-| Field | Type | Required | Description |
-| ----- | ---- | -------- | ----------- |
-| `senderId` | string (UUID) | Yes | The participant ID of the sender (from `POST /people`) |
-| `recipientId` | string (UUID) | Yes | The participant ID of the recipient (from `POST /people`) |
-| `fundingAccountId` | string (UUID) | Yes | The sender's funding source (from `POST /fundingAccounts`) |
-| `recipientAccountId` | string (UUID) | Yes | The recipient's bank account (from `POST /recipientAccounts/gateway`) |
-| `quoteId` | string (UUID) | Yes | The locked FX quote (from `POST /payout/quotes`) |
-| `externalId` | string (UUID) | No | Your internal reference ID for idempotency and reconciliation |
-| `additionalData` | object | Yes | Country-specific data (see [Transaction Schema](data-population/transaction-schema.md)). Pass `{}` if no additional data is required for the corridor. |
-| `deviceData` | object | No | Device fingerprinting data for fraud prevention |
-| `deviceData.userIpAddress` | string | Recommended | The end user's IP address |
+| Field                      | Type          | Required    | Description                                                                                                                                            |
+| -------------------------- | ------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `senderId`                 | string (UUID) | Yes         | The participant ID of the sender (from `POST /people`)                                                                                                 |
+| `recipientId`              | string (UUID) | Yes         | The participant ID of the recipient (from `POST /people`)                                                                                              |
+| `fundingAccountId`         | string (UUID) | Yes         | The sender's funding source (from `POST /fundingAccounts`)                                                                                             |
+| `recipientAccountId`       | string (UUID) | Yes         | The recipient's bank account (from `POST /recipientAccounts/gateway`)                                                                                  |
+| `quoteId`                  | string (UUID) | Yes         | The locked FX quote (from `POST /payout/quotes`)                                                                                                       |
+| `externalId`               | string (UUID) | No          | Your internal reference ID for idempotency and reconciliation                                                                                          |
+| `additionalData`           | object        | Yes         | Country-specific data (see [Transaction Schema](data-population/transaction-schema.md)). Pass `{}` if no additional data is required for the corridor. |
+| `deviceData`               | object        | No          | Device fingerprinting data for fraud prevention                                                                                                        |
+| `deviceData.userIpAddress` | string        | Recommended | The end user's IP address                                                                                                                              |
 
 #### Sample Request
 
@@ -29,7 +29,6 @@ The Transaction endpoint is the culmination of the remittance flow. It links tog
 curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/fx/transactions \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
@@ -126,20 +125,20 @@ curl --request POST \
 
 #### Response Fields
 
-| Field | Description |
-| ----- | ----------- |
-| `id` | Unique transaction ID |
-| `complianceStatus` | Current compliance screening result |
-| `payoutStatus` | Current payout delivery status |
-| `status.messages` | Audit trail of status transitions with timestamps |
-| `exchangeRate` | The applied FX rate |
-| `totalAmount` | Total amount charged to the sender (in source currency) |
-| `receivingAmount` | Amount to be received by the beneficiary (in destination currency) |
-| `fee` | Transaction fee in source currency |
-| `conversionAmount` | Amount that was converted (source currency) |
-| `originExchangeRate` | Exchange rate from source currency to anchor currency |
-| `destinationExchangeRate` | Exchange rate from anchor currency to destination currency |
-| `type` | Transaction type: `FX`, `TOP_UP`, or `BILLPAY` |
+| Field                     | Description                                                        |
+| ------------------------- | ------------------------------------------------------------------ |
+| `id`                      | Unique transaction ID                                              |
+| `complianceStatus`        | Current compliance screening result                                |
+| `payoutStatus`            | Current payout delivery status                                     |
+| `status.messages`         | Audit trail of status transitions with timestamps                  |
+| `exchangeRate`            | The applied FX rate                                                |
+| `totalAmount`             | Total amount charged to the sender (in source currency)            |
+| `receivingAmount`         | Amount to be received by the beneficiary (in destination currency) |
+| `fee`                     | Transaction fee in source currency                                 |
+| `conversionAmount`        | Amount that was converted (source currency)                        |
+| `originExchangeRate`      | Exchange rate from source currency to anchor currency              |
+| `destinationExchangeRate` | Exchange rate from anchor currency to destination currency         |
+| `type`                    | Transaction type: `FX`, `TOP_UP`, or `BILLPAY`                     |
 
 ***
 
@@ -149,42 +148,38 @@ Every transaction has two independent status dimensions:
 
 #### Compliance Status
 
-| Status | Description |
-| ------ | ----------- |
+| Status     | Description                                            |
+| ---------- | ------------------------------------------------------ |
 | `Approved` | Passed all compliance checks — transaction can proceed |
-| `Hold` | Flagged for manual review by the compliance team |
-| `Rejected` | Failed compliance screening — transaction is blocked |
+| `Hold`     | Flagged for manual review by the compliance team       |
+| `Rejected` | Failed compliance screening — transaction is blocked   |
 
 #### Payout Status
 
-| Status | Description |
-| ------ | ----------- |
-| `Pending` | Transaction accepted, awaiting processing |
-| `Paid` | Funds successfully delivered to the recipient |
+| Status      | Description                                                         |
+| ----------- | ------------------------------------------------------------------- |
+| `Pending`   | Transaction accepted, awaiting processing                           |
+| `Paid`      | Funds successfully delivered to the recipient                       |
 | `Cancelled` | Transaction was cancelled (by user request or compliance rejection) |
+| `Failed`    | Transaction was failed (by payment gateway)                         |
+| `Refunded`  | Transaction was refunded                                            |
 
-#### Status Transitions
+#### Compliance Status Transitions
 
 ```
                     ┌──────────┐
-                    │ Created  │
-                    └────┬─────┘
-                         │
-                    ┌────▼─────┐
-               ┌────│   Hold   │────┐
-               │    └────┬─────┘    │
-               │         │          │
-          ┌────▼─────┐   │    ┌─────▼─────┐
-          │ Rejected  │   │    │ Approved  │
-          │(Cancelled)│   │    └─────┬─────┘
-          └──────────┘   │          │
-                         │     ┌────▼──────┐
-                         │     │Transmitted│
-                         │     └────┬──────┘
-                         │          │
-                    ┌────▼──────────▼───┐
-                    │       Paid        │
-                    └───────────────────┘
+              ┌─────│          │─────┐
+              │     └────┬─────┘     │
+              │          │           │
+              │          │           │
+              │     ┌────▼─────┐     │  
+              │┌────│   Hold   │────┐│
+              ││    └──────────┘    ││
+              ││                    ││
+          ┌────▼──────┐       ┌─────▼▼────┐
+          │ Rejected  │       │ Approved  │
+          │(Cancelled)│       └───────────┘
+          └───────────┘
 ```
 
 ***
@@ -209,17 +204,17 @@ curl --request GET \
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-| --------- | ---- | ----------- |
-| `page` | integer | Page number (0-indexed) |
-| `size` | integer | Results per page |
-| `type` | string | Filter by type: `FX`, `TOP_UP`, `BILLPAY` |
-| `complianceStatus` | string | Filter by compliance status |
-| `payoutStatus` | string | Filter by payout status |
-| `senderName` | string | Filter by sender name |
-| `receiverName` | string | Filter by receiver name |
-| `from` | string | Start date filter |
-| `to` | string | End date filter |
+| Parameter          | Type    | Description                               |
+| ------------------ | ------- | ----------------------------------------- |
+| `page`             | integer | Page number (0-indexed)                   |
+| `size`             | integer | Results per page                          |
+| `type`             | string  | Filter by type: `FX`, `TOP_UP`, `BILLPAY` |
+| `complianceStatus` | string  | Filter by compliance status               |
+| `payoutStatus`     | string  | Filter by payout status                   |
+| `senderName`       | string  | Filter by sender name                     |
+| `receiverName`     | string  | Filter by receiver name                   |
+| `from`             | string  | Start date filter                         |
+| `to`               | string  | End date filter                           |
 
 #### Get Transaction Status History
 
@@ -273,11 +268,11 @@ curl --request PUT \
 
 **Responses:**
 
-| Status | Description |
-| ------ | ----------- |
-| `204` | Transaction successfully cancelled |
-| `400` | Cannot cancel — transaction is in a non-cancellable state |
-| `404` | Transaction not found |
+| Status | Description                                               |
+| ------ | --------------------------------------------------------- |
+| `204`  | Transaction successfully cancelled                        |
+| `400`  | Cannot cancel — transaction is in a non-cancellable state |
+| `404`  | Transaction not found                                     |
 
 > ⚠️ Once a transaction reaches `Paid` status, it cannot be cancelled — use the refund endpoint instead.
 
@@ -298,11 +293,11 @@ curl --request PUT \
 
 **Responses:**
 
-| Status | Description |
-| ------ | ----------- |
-| `204` | Refund initiated |
-| `400` | Cannot refund — transaction is not in `Paid` payout status |
-| `404` | Transaction not found |
+| Status | Description                                                |
+| ------ | ---------------------------------------------------------- |
+| `204`  | Refund initiated                                           |
+| `400`  | Cannot refund — transaction is not in `Paid` payout status |
+| `404`  | Transaction not found                                      |
 
 ***
 
@@ -336,7 +331,6 @@ Before executing a transaction, verify the sender has not exceeded their limits.
 ```bash
 curl --request GET \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/fx/participants/$SENDER_ID/limits \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY"
 ```
@@ -387,26 +381,26 @@ The receipt must include:
 
 ### Error Responses
 
-| HTTP Status | Error | Cause |
-| ----------- | ----- | ----- |
-| `400` | Bad request | Missing required fields, invalid data format, or expired quote |
-| `403` | Forbidden | Agent not approved, or sender doesn't meet compliance requirements |
-| `422` | Unprocessable entity | Business rule violation (e.g., limit exceeded, invalid corridor) |
+| HTTP Status | Error                | Cause                                                              |
+| ----------- | -------------------- | ------------------------------------------------------------------ |
+| `400`       | Bad request          | Missing required fields, invalid data format, or expired quote     |
+| `403`       | Forbidden            | Agent not approved, or sender doesn't meet compliance requirements |
+| `422`       | Unprocessable entity | Business rule violation (e.g., limit exceeded, invalid corridor)   |
 
 ***
 
 ### Additional Endpoints
 
-| Operation | Method | Endpoint |
-| --------- | ------ | -------- |
-| Create transaction | `POST` | `/organizations/{tenant}/fx/transactions` |
-| Get transaction | `GET` | `/organizations/{tenant}/fx/transactions/{transactionId}` |
-| List transactions | `GET` | `/organizations/{tenant}/fx/transactions` |
-| Get status history | `GET` | `/organizations/{tenant}/fx/transactions/{transactionId}/status` |
-| Cancel transaction | `PUT` | `/organizations/{tenant}/fx/transactions/{transactionId}/status/cancel` |
-| Refund transaction | `PUT` | `/organizations/{tenant}/fx/transactions/{transactionId}/status/refund` |
-| Update metadata | `PUT` | `/organizations/{tenant}/fx/transactions/{transactionId}/metadata` |
-| Check limits | `GET` | `/organizations/{tenant}/fx/participants/{participantId}/limits` |
-| Get transaction schema | `GET` | `/organizations/{tenant}/fx/transactions/schema?countryCode={iso2}` |
+| Operation              | Method | Endpoint                                                                |
+| ---------------------- | ------ | ----------------------------------------------------------------------- |
+| Create transaction     | `POST` | `/organizations/{tenant}/fx/transactions`                               |
+| Get transaction        | `GET`  | `/organizations/{tenant}/fx/transactions/{transactionId}`               |
+| List transactions      | `GET`  | `/organizations/{tenant}/fx/transactions`                               |
+| Get status history     | `GET`  | `/organizations/{tenant}/fx/transactions/{transactionId}/status`        |
+| Cancel transaction     | `PUT`  | `/organizations/{tenant}/fx/transactions/{transactionId}/status/cancel` |
+| Refund transaction     | `PUT`  | `/organizations/{tenant}/fx/transactions/{transactionId}/status/refund` |
+| Update metadata        | `PUT`  | `/organizations/{tenant}/fx/transactions/{transactionId}/metadata`      |
+| Check limits           | `GET`  | `/organizations/{tenant}/fx/participants/{participantId}/limits`        |
+| Get transaction schema | `GET`  | `/organizations/{tenant}/fx/transactions/schema?countryCode={iso2}`     |
 
 [Interactive API Documentation](https://dev-api.inyoglobal.com/sandbox/#tag/fx_Transaction-Resource)
