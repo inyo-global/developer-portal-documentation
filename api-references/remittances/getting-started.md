@@ -22,11 +22,11 @@ Before you begin, ensure you have:
 
 ### Sandbox Environment
 
-| Resource | URL |
-| -------- | --- |
-| Core API (sandbox) | `https://api.sandbox.inyoplatform.com` |
-| OpenAPI docs | [https://dev-api.inyoglobal.com/sandbox/](https://dev-api.inyoglobal.com/sandbox/) |
-| Developer portal | [https://dev.inyoglobal.com](https://dev.inyoglobal.com) |
+| Resource           | URL                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| Core API (sandbox) | `https://api.sandbox.inyoplatform.com`                                             |
+| OpenAPI docs       | [https://dev-api.inyoglobal.com/sandbox/](https://dev-api.inyoglobal.com/sandbox/) |
+| Developer portal   | [https://dev.inyoglobal.com](https://dev.inyoglobal.com)                           |
 
 ***
 
@@ -43,8 +43,6 @@ curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/people \
   --header 'Content-Type: application/json' \
   --header "x-api-key: $API_KEY" \
-  --header "x-agent-id: $AGENT_ID" \
-  --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
   "firstName": "John",
   "lastName": "Doe",
@@ -78,7 +76,6 @@ Confirm the sender has reached at least **Level 1** before proceeding.
 ```bash
 curl --request GET \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/participants/$SENDER_ID/complianceLevels \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY"
 ```
@@ -90,7 +87,6 @@ If the response shows `LEVEL_0`, the sender is missing required fields. Check th
 ```bash
 curl --request GET \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/payout/us/destinations \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY"
 ```
@@ -103,7 +99,6 @@ This returns the list of countries your tenant is enabled to send to, along with
 curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/payout/quotes \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
@@ -113,7 +108,7 @@ curl --request POST \
 }'
 ```
 
-> ⚠️ **Save the `quoteId`** from the response. Quotes expire in ~2 minutes.
+> ⚠️ **Save the `quoteId`** from the response. Quotes expire in \~2 minutes.
 
 #### Step 5: Create the Recipient
 
@@ -122,7 +117,6 @@ First, fetch the required schema for the destination country:
 ```bash
 curl --request GET \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/payout/recipients/schema/br \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY"
 ```
@@ -134,8 +128,6 @@ curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/people \
   --header 'Content-Type: application/json' \
   --header "x-api-key: $API_KEY" \
-  --header "x-agent-id: $AGENT_ID" \
-  --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
   "firstName": "Maria",
   "lastName": "Silva",
@@ -160,7 +152,6 @@ Fetch the account schema, then link the bank account:
 curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/payout/participants/$RECIPIENT_ID/recipientAccounts/gateway \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
@@ -185,7 +176,6 @@ curl --request POST \
 curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/payout/participants/$SENDER_ID/fundingAccounts \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
@@ -216,7 +206,6 @@ Link all the IDs together and submit:
 curl --request POST \
   --url https://api.sandbox.inyoplatform.com/organizations/$TENANT/fx/transactions \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $API_KEY" \
   --header "x-agent-id: $AGENT_ID" \
   --header "x-agent-api-key: $AGENT_KEY" \
   --data '{
@@ -247,13 +236,13 @@ A successful response returns HTTP `202` with the full transaction object, inclu
 
 ### Common Issues
 
-| Symptom | Cause | Fix |
-| ------- | ----- | --- |
-| `401 Unauthorized` | Invalid API keys | Verify `x-api-key`, `x-agent-id`, and `x-agent-api-key` in your `.env` |
-| `403 Forbidden` | Agent not approved, or sender below compliance Level 1 | Check agent approval status; verify sender's compliance level |
-| `400 Missing fields` | Incomplete sender/recipient profile | Check schema endpoints for required fields per country |
-| `422 Unprocessable` | Quote expired, limit exceeded, or invalid references | Refresh the quote; check limits via `GET /fx/participants/{id}/limits` |
-| `429 Too Many Requests` | Rate limit exceeded | Implement caching for destinations, banks, and schemas (24h TTL) |
+| Symptom                 | Cause                                                  | Fix                                                                    |
+| ----------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `401 Unauthorized`      | Invalid API keys                                       | Verify `x-api-key`, `x-agent-id`, and `x-agent-api-key` in your `.env` |
+| `403 Forbidden`         | Agent not approved, or sender below compliance Level 1 | Check agent approval status; verify sender's compliance level          |
+| `400 Missing fields`    | Incomplete sender/recipient profile                    | Check schema endpoints for required fields per country                 |
+| `422 Unprocessable`     | Quote expired, limit exceeded, or invalid references   | Refresh the quote; check limits via `GET /fx/participants/{id}/limits` |
+| `429 Too Many Requests` | Rate limit exceeded                                    | Implement caching for destinations, banks, and schemas (24h TTL)       |
 
 ***
 
