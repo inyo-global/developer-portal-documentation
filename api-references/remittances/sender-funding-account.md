@@ -4,6 +4,49 @@ A Funding Account represents the source of funds used by the sender to pay for a
 
 ***
 
+### Funding Account Statuses
+
+Every funding account has a `status` field that reflects its current verification state. Your application should handle all four statuses:
+
+| Status | Description | Can Be Used for Transactions? |
+| ------ | ----------- | ----------------------------- |
+| `Pending` | Account has been created but verification is not yet complete (e.g., waiting for ACH micro-deposit confirmation or initial processing). | ❌ No |
+| `ActionRequired` | Additional action is needed from the user — typically a 3D Secure (3DS) authentication challenge for card payments. See [Handling 3D Secure](../payments-gateway/apis/payment/pulling-funds/cards/authorizing/handling-3d-secure.md). | ❌ No |
+| `Verified` | Account has been fully verified and is ready to fund transactions. | ✅ Yes |
+| `Rejected` | Verification failed — the card was declined, 3DS authentication failed, or the bank account could not be verified. The sender must add a new funding account. | ❌ No |
+
+> 📝 **Note for API consumers:** The `status` field in funding account responses is returned as a string. The four values above are the complete set of possible statuses.
+
+#### Status Lifecycle
+
+```
+                         ┌──────────────┐
+                         │   Pending    │
+                         └──────┬───────┘
+                                │
+                    ┌───────────┼───────────┐
+                    ▼           │           ▼
+           ┌───────────────┐   │   ┌───────────────┐
+           │ActionRequired │   │   │   Verified    │
+           └───────┬───────┘   │   └───────────────┘
+                   │           │
+           ┌───────┼───────┐   │
+           ▼               ▼   ▼
+   ┌───────────────┐   ┌───────────────┐
+   │   Verified    │   │   Rejected    │
+   └───────────────┘   └───────────────┘
+```
+
+- **Card (CARD):** Typically transitions `Pending` → `ActionRequired` (3DS challenge) → `Verified` or `Rejected`. Some low-risk cards may go directly to `Verified`.
+- **ACH:** Typically transitions `Pending` → `Verified` or `Rejected` after bank account verification.
+- **Wallet (WALLET):** Usually transitions directly to `Verified`.
+
+> ⚠️ **Always check the status** before using a funding account in a transaction. Attempting to use a `Pending`, `ActionRequired`, or `Rejected` funding account will result in an error.
+
+> 💡 **Handling `Rejected`:** If a funding account is rejected, it cannot be retried. The sender must create a new funding account with corrected or alternative payment details.
+
+***
+
 ### Supported Payment Methods
 
 | Method | Type Value | Description | Speed |
@@ -66,8 +109,9 @@ Some cards require additional authentication. If the response returns `status: '
 1. Save the funding account locally with a `Pending` status
 2. Display the provided `redirectAcsUrl` in an iframe for the user to complete the challenge
 3. Listen for a `postMessage` event from the iframe confirming authorization
-4. Call `GET /payout/fundingAccounts/{externalId}` to verify the status is `Verified`
-5. Only then allow the card to be used for transactions
+4. Call `GET /payout/fundingAccounts/{externalId}` to check the updated status
+5. If `Verified` → the card is ready to use for transactions
+6. If `Rejected` → the 3DS challenge failed or the card was declined; prompt the sender to add a different card
 
 For full 3DS implementation details, see [Handling 3D Secure](../payments-gateway/apis/payment/pulling-funds/cards/authorizing/handling-3d-secure.md).
 
@@ -133,7 +177,31 @@ curl --request GET \
   --header "x-agent-api-key: $AGENT_KEY"
 ```
 
-Use this to check a funding account's verification status (e.g., after a 3DS challenge).
+Use this to check a funding account's current status. Common use cases:
+- After a 3DS challenge to confirm `Verified` or detect `Rejected`
+- Before creating a transaction to ensure the funding account is still `Verified`
+- Polling after ACH account creation to check if verification has completed
+
+**Example response:**
+
+```json
+{
+  "id": "fa_abc123",
+  "externalId": "funding-card-001",
+  "asset": "USD",
+  "nickname": "My Debit Card",
+  "status": "Verified",
+  "paymentMethod": {
+    "type": "CARD",
+    "lastFour": "4242",
+    "brand": "VISA"
+  },
+  "createdAt": "2025-02-18T15:30:00Z",
+  "updatedAt": "2025-02-18T15:31:00Z"
+}
+```
+
+> 💡 **Tip:** Implement a polling strategy or webhook listener to detect status transitions from `Pending` → `Verified`/`Rejected`, rather than relying on the user to manually refresh.
 
 ***
 
