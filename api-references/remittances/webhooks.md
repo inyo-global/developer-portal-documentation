@@ -6,11 +6,14 @@ Webhooks allow you to receive real-time notifications when important events occu
 
 ### Supported Events
 
-| Event | Description | When It Fires |
-| ----- | ----------- | ------------- |
-| `transactionStatusChanged` | A transaction's compliance or payout status has changed | Status transitions (e.g., Pending → Paid, Hold → Approved) |
-| `documentUpdatedEvents` | A document verification status has been updated | After compliance team reviews an uploaded document |
-| `agentUpdatedEvents` | An agent's status or configuration has changed | Agent approval, suspension, or configuration updates |
+| Event                                | Description                                     | When It Fires                                                  |
+| ------------------------------------ | ----------------------------------------------- | -------------------------------------------------------------- |
+| `TransactionStatusChanged`           | A transaction's payout status has changed       | Status transitions (e.g., Pending → Paid, Pending → Cancelled) |
+| `documentUpdatedEvents`              | A document verification status has been updated | After compliance team reviews an uploaded document             |
+| `agentStatusChangedEvent`            | An agent's status or configuration has changed  | Agent approval, suspension, or configuration updates           |
+| `TransactionComplianceStatusChanged` | A transaction's compliance status has changed   | Status transitions (e.g., Hold → Approved, Hold → Rejected)    |
+
+
 
 ***
 
@@ -158,10 +161,10 @@ app.listen(3001, () => console.log('Webhook listener on :3001'));
 
 ### All Endpoints
 
-| Operation | Method | Endpoint |
-| --------- | ------ | -------- |
-| Register webhook | `POST` | `/organizations/{tenant}/webhooks` |
-| List webhooks | `GET` | `/organizations/{tenant}/webhooks` |
-| Delete webhook | `DELETE` | `/organizations/{tenant}/webhooks/{webhookId}` |
+| Operation        | Method   | Endpoint                                       |
+| ---------------- | -------- | ---------------------------------------------- |
+| Register webhook | `POST`   | `/organizations/{tenant}/webhooks`             |
+| List webhooks    | `GET`    | `/organizations/{tenant}/webhooks`             |
+| Delete webhook   | `DELETE` | `/organizations/{tenant}/webhooks/{webhookId}` |
 
 [Interactive API Documentation](https://dev-api.inyoglobal.com/sandbox/#tag/webhook_Webhooks-Resource)
