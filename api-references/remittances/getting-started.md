@@ -16,7 +16,7 @@ Before you begin, ensure you have:
 * **Node.js v18+** (if running the [sample project](https://github.com/inyo-global/remittance-sample))
 * A REST client (cURL, Postman, or similar)
 
-> 📬 Don't have credentials yet? Contact [platform@inyoglobal.com](mailto:platform@inyoglobal.com) to request sandbox access.
+> 📬 Don't have credentials yet? Get in touch with our sales team to request sandbox access.
 
 ***
 
@@ -261,6 +261,6 @@ A successful response returns HTTP `202` with the full transaction object, inclu
 
 We're continuously improving these docs. For feedback, questions, or technical issues:
 
-* 📧 [platform@inyoglobal.com](mailto:platform@inyoglobal.com)
+* 📧 Get in touch with our sales team
 * 📖 [Interactive API reference](https://dev-api.inyoglobal.com/sandbox/)
 * 💻 [Sample project on GitHub](https://github.com/inyo-global/remittance-sample)

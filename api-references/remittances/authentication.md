@@ -98,7 +98,7 @@ x-agent-api-key: {your_agent_api_key}
 ### Security Best Practices
 
 * **Never expose API keys in frontend code.** Use a Backend-for-Frontend (BFF) pattern — your server holds the secrets and proxies requests to Inyo.
-* **Rotate keys** if you suspect compromise. Contact [platform@inyoglobal.com](mailto:platform@inyoglobal.com) for key rotation.
+* **Rotate keys** if you suspect compromise. Contact our sales team for key rotation.
 * **Restrict network access** — use IP allowlisting in production if supported by your plan.
 * **Use HTTPS only** — all Inyo endpoints enforce TLS. Plain HTTP requests are rejected.
 
