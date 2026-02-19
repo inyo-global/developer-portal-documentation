@@ -86,4 +86,4 @@ The platform supports three transaction types:
 
 * **Reference implementation**: [Remittance Sample Project](https://github.com/inyo-global/remittance-sample) — a working Node.js + React app demonstrating the full integration
 * **OpenAPI specification**: [Interactive API docs](https://dev-api.inyoglobal.com/sandbox/)
-* **Support**: [platform@inyoglobal.com](mailto:platform@inyoglobal.com)
+* **Support**: Get in touch with our sales team
