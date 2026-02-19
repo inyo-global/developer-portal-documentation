@@ -30,4 +30,4 @@ Whether you’re a fintech startup, e-commerce platform, or enterprise solution,
 
 * Visit our Authentication Guide to learn how to securely access our APIs
 * Check out Common Use Cases for step-by-step implementation examples
-* Reach out to our support team anytime at platform@inyoglobal.com
+* Reach out to our sales team for assistance
